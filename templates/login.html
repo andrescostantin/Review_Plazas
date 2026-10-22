@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Acceso de analistas</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body class="center-page">
+<div class="login-card">
+  <span class="eyebrow">PANEL DE ANÁLISIS</span><h1>Acceso de analistas</h1>
+  <p>Ingresá la contraseña para consultar los resultados de las reseñas.</p>
+  {% with messages = get_flashed_messages() %}{% if messages %}<div class="alert">{{ messages[0] }}</div>{% endif %}{% endwith %}
+  <form method="post"><label>Contraseña<input type="password" name="password" required autofocus></label><button class="submit" type="submit">Ingresar →</button></form>
+  <a class="back" href="{{ url_for('index') }}">← Volver a la encuesta</a>
+</div></body></html>

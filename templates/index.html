@@ -1,0 +1,145 @@
+{% set ICONS = {
+ "caminos":"M7 21 9 3M17 21 15 3M12 6v2M12 11v2M12 16v2",
+ "iluminacion":"M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z",
+ "bancos":"M4 11h16M5 11V8a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3M6 11v7M18 11v7M4 15h16",
+ "limpieza":"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
+ "juegos":"M3 4h18M7 4l-1 12M17 4l1 12M4 16h4M16 16h4",
+ "verde":"M12 22v-6M12 16a5 5 0 0 1-3-9 4 4 0 0 1 6 0 5 5 0 0 1-3 9z",
+ "seguridad":"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",
+ "equipamiento":"M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"} %}
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tu opinión sobre la plaza</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<a class="skip-link" href="#formulario">Ir al formulario</a>
+<header class="hero">
+  <svg class="hero-art" viewBox="0 0 400 260" aria-hidden="true" focusable="false">
+    <circle cx="320" cy="60" r="34" fill="#f3d98b" opacity=".9"/>
+    <path d="M0 200c60-30 120-30 200-10s130 10 200-20v90H0z" fill="#b9d6c2"/>
+    <path d="M0 225c80-25 150-20 220 0s120 5 180-12v47H0z" fill="#8fbea0"/>
+    <g fill="#2f6b4f"><rect x="96" y="120" width="8" height="78" rx="3"/><circle cx="100" cy="108" r="30"/><circle cx="80" cy="130" r="20"/><circle cx="122" cy="132" r="22"/></g>
+    <g fill="#3f8562"><rect x="236" y="146" width="6" height="56" rx="3"/><circle cx="239" cy="136" r="22"/><circle cx="224" cy="152" r="14"/><circle cx="254" cy="153" r="15"/></g>
+    <path d="M150 214h110" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+  </svg>
+  <div class="container hero-inner">
+    <span class="eyebrow">OPINIÓN CIUDADANA</span>
+    <h1>¿Cómo encontraste la plaza?</h1>
+    <p>Tu opinión ayuda a identificar qué funciona bien y qué podemos mejorar. Es anónima y no te pedimos datos personales.</p>
+    <ul class="hero-points"><li>Menos de 5 minutos</li><li>Sin registrarte</li><li>Todo es opcional</li></ul>
+  </div>
+</header>
+
+<main class="container" id="formulario">
+{% if errors %}
+<div class="alert" role="alert" id="errorBox" tabindex="-1">
+  <strong>No pudimos enviar tu opinión todavía:</strong>
+  <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% else %}
+<div class="alert" role="alert" id="errorBox" tabindex="-1" hidden></div>
+{% endif %}
+
+<form class="review-form" method="post" action="{{ url_for('review') }}" id="reviewForm"
+      data-min-comment="{{ min_comment }}">
+
+  <div class="notice" role="note">
+    <strong>Todo es opcional</strong>, pero para enviar tu opinión tenés que <strong>puntuar al menos un aspecto</strong>
+    o <strong>escribir un comentario</strong> de al menos {{ min_comment }} caracteres. No hace falta puntuar todo:
+    si algo no lo conocés, marcá «No sé / No puedo evaluarla».
+  </div>
+
+  <section class="card" aria-labelledby="t-general">
+    <div class="section-title"><span aria-hidden="true">01</span><div><h2 id="t-general">Sobre vos y la plaza</h2><p>Opcional. Nos ayuda a entender desde qué experiencia opinás.</p></div></div>
+
+    <fieldset class="choice-group">
+      <legend>¿Qué relación tenés con esta plaza? <small>(opcional)</small></legend>
+      <div class="choice-grid">
+        {% for k, label in relaciones.items() %}
+        <label class="choice"><input type="radio" name="relacion" value="{{ k }}" {% if form.get('relacion') == k %}checked{% endif %}><span>{{ label }}</span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="choice-group">
+      <legend>¿Con qué frecuencia la usás? <small>(opcional)</small></legend>
+      <div class="choice-grid">
+        {% for k, label in frecuencias.items() %}
+        <label class="choice"><input type="radio" name="frecuencia" value="{{ k }}" {% if form.get('frecuencia') == k %}checked{% endif %}><span>{{ label }}</span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+
+    <fieldset class="choice-group">
+      <legend>¿Para qué la usás? <small>(opcional, podés marcar varias)</small></legend>
+      <div class="choice-grid">
+        {% set chosen = form.getlist('usos') %}
+        {% for k, label in usos.items() %}
+        <label class="choice"><input type="checkbox" name="usos" value="{{ k }}" {% if k in chosen %}checked{% endif %}><span>{{ label }}</span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+  </section>
+
+  <section class="card" aria-labelledby="t-cats">
+    <div class="section-title"><span aria-hidden="true">02</span><div><h2 id="t-cats">Calificá cada aspecto de la plaza</h2><p>Elegí de 1 a 5 estrellas en los aspectos que conozcas. Los demás podés dejarlos sin responder.</p></div></div>
+
+    <ul class="scale" aria-label="Significado de las estrellas">
+      {% for i in range(1, 6) %}<li><span class="scale-stars" aria-hidden="true">{{ '★' * i }}</span><span><strong>{{ i }}</strong> {{ rating_labels[i] }}</span></li>{% endfor %}
+    </ul>
+    <div class="progress-wrap"><div class="progress-bar" aria-hidden="true"><span id="progressFill"></span></div><p class="progress" id="progress" aria-live="polite">Puntuaste 0 de {{ categories|length }} aspectos.</p></div>
+
+    {% for c in categories %}
+    {% set key = c.key %}
+    {% set cur = form.get('rating_' ~ key) %}
+    <div class="cat-card" data-cat="{{ key }}">
+      <div class="cat-head">
+        <span class="cat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ICONS[key] }}"/></svg></span>
+        <div><h3>{{ c.name }}</h3>
+        <p class="cat-desc" id="d-{{ key }}">{{ c.desc }}</p></div>
+      </div>
+      <fieldset class="rating" aria-describedby="d-{{ key }}">
+        <legend class="sr-only">Puntuación de {{ c.name }}</legend>
+        <div class="stars-row">
+          {% for i in range(1, 6) %}
+          <input type="radio" class="star-input" name="rating_{{ key }}" id="r_{{ key }}_{{ i }}" value="{{ i }}" {% if cur == i|string %}checked{% endif %}>
+          <label class="star-label" for="r_{{ key }}_{{ i }}" data-label="{{ rating_labels[i] }}" data-value="{{ i }}">
+            <svg class="star-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.6l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.2 1.2-6.5L2.5 9.5l6.6-.9z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg><span class="sr-only">{{ i }} {{ 'estrella' if i == 1 else 'estrellas' }}: {{ rating_labels[i] }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <span class="rating-readout" data-readout aria-live="polite"></span>
+        <button type="button" class="link-btn" data-clear hidden>Quitar puntuación</button>
+      </fieldset>
+      <label class="nosabe"><input type="checkbox" name="nosabe_{{ key }}" value="1" {% if form.get('nosabe_' ~ key) == '1' %}checked{% endif %}> No sé / No puedo evaluarla</label>
+      <label class="comment-label" for="c_{{ key }}">Comentario sobre {{ c.name|lower }} <small>(opcional)</small></label>
+      <textarea id="c_{{ key }}" name="comentario_{{ key }}" maxlength="{{ max_cat }}" rows="2"
+                placeholder="Ej.: contanos qué viste, dónde y qué te llamó la atención.">{{ form.get('comentario_' ~ key, '') }}</textarea>
+      <div class="counter" data-counter="c_{{ key }}" data-max="{{ max_cat }}" aria-hidden="true"></div>
+    </div>
+    {% endfor %}
+  </section>
+
+  <section class="card" aria-labelledby="t-mejora">
+    <div class="section-title"><span aria-hidden="true">03</span><div><h2 id="t-mejora">Tus ideas para mejorar</h2><p>Opcional, aunque ayuda mucho.</p></div></div>
+    <label class="comment-label" for="mejora_prioritaria">¿Qué es lo primero que mejorarías de esta plaza? <small>(opcional)</small></label>
+    <textarea class="suggestion" id="mejora_prioritaria" name="mejora_prioritaria" maxlength="{{ max_mejora }}"
+              placeholder="Ej.: Me gustaría que hubiera más iluminación cerca de los juegos.">{{ form.get('mejora_prioritaria', '') }}</textarea>
+    <div class="counter" data-counter="mejora_prioritaria" data-max="{{ max_mejora }}" aria-hidden="true"></div>
+
+    <label class="comment-label" for="comentario_general">Comentarios o sugerencias adicionales <small>(opcional)</small></label>
+    <textarea class="suggestion" id="comentario_general" name="comentario_general" maxlength="{{ max_general }}"
+              placeholder="Cualquier otra cosa que quieras contarnos sobre la plaza.">{{ form.get('comentario_general', '') }}</textarea>
+    <div class="counter" data-counter="comentario_general" data-max="{{ max_general }}" aria-hidden="true"></div>
+  </section>
+
+  <button class="submit" type="submit" id="submitBtn"><span class="submit-text">Enviar mi opinión</span> <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+</form>
+</main>
+
+<footer><a href="{{ url_for('login') }}">Acceso para analistas</a></footer>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body></html>

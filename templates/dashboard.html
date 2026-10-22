@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel de analistas</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+<header class="dashboard-header"><div class="container header-row">
+  <div><span class="eyebrow">PANEL DE ANALISTAS</span><h1>Estado de la plaza</h1></div>
+  <div class="header-actions">
+    <a class="btn-outline" href="{{ url_for('export_csv') }}">Exportar CSV</a>
+    <a class="logout" href="{{ url_for('logout') }}">Cerrar sesión</a>
+  </div>
+</div></header>
+
+<main class="container dashboard">
+  <div class="notice" role="note">
+    Los resultados reflejan la <strong>percepción de los vecinos</strong> que respondieron la encuesta. Son un insumo para priorizar
+    revisiones, <strong>no inspecciones técnicas oficiales</strong> ni hechos verificados.
+  </div>
+
+  <form class="card filters" id="filters" aria-label="Filtros">
+    <div class="filter-grid">
+      <label>Categoría
+        <select name="categoria"><option value="">Todas</option>
+          {% for c in categories %}<option value="{{ c.key }}">{{ c.name }}</option>{% endfor %}
+        </select></label>
+      <label>Desde<input type="date" name="desde"></label>
+      <label>Hasta<input type="date" name="hasta"></label>
+      <label>Frecuencia de uso
+        <select name="frecuencia"><option value="">Todas</option>
+          {% for k, v in frecuencias.items() %}<option value="{{ k }}">{{ v }}</option>{% endfor %}
+        </select></label>
+      <label>Puntuación
+        <select name="puntuacion"><option value="">Todas</option>
+          {% for i in range(5, 0, -1) %}<option value="{{ i }}">{{ i }} — {{ rating_labels[i] }}</option>{% endfor %}
+        </select></label>
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" type="submit">Aplicar filtros</button>
+      <button class="btn-outline" type="button" id="resetFilters">Limpiar</button>
+    </div>
+    <p class="hint">Fechas y frecuencia afectan a todo el panel. «Categoría» muestra solo ese análisis y filtra los comentarios;
+      «Puntuación» filtra solo la lista de comentarios (los promedios nunca se calculan sobre una sola puntuación).</p>
+  </form>
+
+  <div id="status" role="status" aria-live="polite" class="status"></div>
+
+  <section class="kpis" aria-label="Indicadores generales">
+    <div class="metric"><span>EVALUACIONES</span><strong id="kTotal">—</strong><small id="kTotalSub"></small></div>
+    <div class="metric"><span>PROMEDIO GENERAL</span><strong id="kOverall">—</strong><small id="kOverallSub"></small></div>
+    <div class="metric"><span>MEJOR EVALUADA</span><strong id="kBest" class="metric-text">—</strong><small id="kBestSub"></small></div>
+    <div class="metric"><span>PEOR EVALUADA</span><strong id="kWorst" class="metric-text">—</strong><small id="kWorstSub"></small></div>
+    <div class="metric"><span>CON COMENTARIOS</span><strong id="kComments">—</strong><small id="kCommentsSub"></small></div>
+  </section>
+
+  <section class="card" aria-labelledby="t1">
+    <div class="section-title"><span aria-hidden="true">01</span><div><h2 id="t1">Comparación entre categorías</h2><p>Promedio de 1 a 5 y cantidad de puntuaciones válidas (n). «No sé» no se cuenta.</p></div></div>
+    <div id="compare" class="compare"></div>
+  </section>
+
+  <section class="card" aria-labelledby="t2">
+    <div class="section-title"><span aria-hidden="true">02</span><div><h2 id="t2">Identificación de problemas</h2><p>Categorías ordenadas de menor a mayor promedio.</p></div></div>
+    <ol id="problems" class="problems"></ol>
+    <p class="hint">Criterio orientativo: 1,0–1,9 estado muy malo · 2,0–2,9 necesita mejoras importantes · 3,0–3,9 estado regular · 4,0–5,0 buen estado.
+      Con pocas respuestas (menos de {{ low_sample }}) el promedio es poco representativo.</p>
+  </section>
+
+  <section class="card" aria-labelledby="t3">
+    <div class="section-title"><span aria-hidden="true">03</span><div><h2 id="t3">Análisis por categoría</h2><p>Promedio, distribución de estrellas, «No sé» y comentarios.</p></div></div>
+    <div id="catGrid" class="cat-grid"></div>
+  </section>
+
+  <section class="card" aria-labelledby="t4">
+    <div class="section-title"><span aria-hidden="true">04</span><div><h2 id="t4">Comentarios</h2><p>Comentarios por categoría y comentarios generales, sin entradas vacías.</p></div></div>
+    <div class="comment-tools">
+      <label>Mostrar
+        <select id="tipoComentario"><option value="todos">Todos</option><option value="categoria">Solo de categorías</option><option value="general">Solo generales y de mejora</option></select></label>
+      <span id="commentsCount" class="hint"></span>
+    </div>
+    <div id="comments" class="comment-list"></div>
+    <button type="button" class="btn-outline" id="moreComments" hidden>Cargar más</button>
+  </section>
+
+  <section class="card" aria-labelledby="t5" id="legacySection" hidden>
+    <div class="section-title"><span aria-hidden="true">05</span><div><h2 id="t5">Reseñas del formulario anterior</h2><p>Se conservaron, pero usaban otras 4 categorías: no son comparables con las 8 actuales y no entran en los indicadores de arriba.</p></div></div>
+    <div id="legacy"></div>
+  </section>
+</main>
+
+<script id="cfg" type="application/json">{{ {"ratingLabels": rating_labels, "lowSample": low_sample}|tojson }}</script>
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+</body></html>
